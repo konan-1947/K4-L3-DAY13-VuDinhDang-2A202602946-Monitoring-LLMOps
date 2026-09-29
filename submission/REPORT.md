@@ -11,7 +11,7 @@
 - **MSSV:** 2A202602946
 - **Lớp:** K4-L3A
 - **Repository URL:** https://github.com/konan-1947/K4-L3-DAY13-VuDinhDang-2A202602946-Monitoring-LLMOps
-- **Commit SHA cuối:** _(điền sau commit cuối: `git log -1 --oneline`)_
+- **Commit SHA cuối dùng để chấm source/evidence:** `ad1a3b61c6b09148718f03c7cfd8dc46d9ca675a`
 - **Challenge ID:** `day13-k4-l3a-monitoring-llmops-v1`
 - **Tên project Langfuse cá nhân:** `day13-k4-l3a-2A202602946`
 

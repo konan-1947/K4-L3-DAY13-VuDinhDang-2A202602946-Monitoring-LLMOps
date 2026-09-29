@@ -1,0 +1,7 @@
+Official CP3 challenge structured-log evidence
+Challenge: day13-k4-l3a-monitoring-llmops-v1
+Selected correlation_id: req-bb0d4434
+Source: data/logs.jsonl (message preview intentionally omitted)
+
+{"ts":"2026-09-29T09:54:26.900122Z","level":"info","event":"request_received","correlation_id":"req-bb0d4434","model":"claude-sonnet-4-5","env":"dev","feature":"monitoring"}
+{"ts":"2026-09-29T09:54:29.554637Z","level":"info","event":"response_sent","correlation_id":"req-bb0d4434","model":"claude-sonnet-4-5","env":"dev","feature":"monitoring","latency_ms":2652,"ttft_ms":50,"tokens_in":35,"tokens_out":112,"cost_usd":0.001785,"quality_score":0.8,"tool_name":"retrieval","tool_success":true}

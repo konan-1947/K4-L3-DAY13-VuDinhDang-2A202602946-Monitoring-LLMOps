@@ -1,0 +1,13 @@
+Official CP3 challenge metric evidence
+Challenge: day13-k4-l3a-monitoring-llmops-v1
+Incident: rag_slow | affected feature: monitoring | threshold: 2000 ms
+Window (Asia/Ho_Chi_Minh): 2026-09-29 16:54:19–16:54:37
+Source: data/logs.jsonl response_sent events for the five challenge requests
+
+Baseline latency observed before injection: about 151 ms
+Challenge responses above 2000 ms: 5/5
+latency_ms (sorted): 2652, 2652, 2652, 2652, 7766
+min: 2652 ms | median: 2652 ms | mean: 3674.8 ms | max: 7766 ms
+
+The first request's wall-clock latency is elevated by queuing at concurrency=5;
+the selected trace below isolates a 2501 ms retrieval span.

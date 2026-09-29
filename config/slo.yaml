@@ -1,15 +1,47 @@
 service: day13-l3a-monitoring-llmops-lab
+# Nguồn đo: data/logs.jsonl (structured log) — cùng nguồn với dashboard.
+# Mọi ngưỡng dưới đây được giữ khớp với threshold trong config/dashboard.yaml
+# để metric, SLO và alert nói chung một con số.
 primary_slo:
   name: fast_successful_requests
+  description: >-
+    Tỷ lệ request /chat được trả lời thành công và đủ nhanh để người dùng chấp nhận chờ:
+    có response_sent, không có lỗi, bước truy hồi thành công và latency <= 2000 ms.
   window: 28d
   sli:
-    good_event: 'event == "response_sent" and latency_ms <= 3000'
+    good_event: 'event == "response_sent" and latency_ms <= 2000 and tool_success == true'
     total_event: 'event == "request_received"'
+    measurement: 'SLI = count(good_event) / count(total_event) trong cửa sổ 28 ngày, lấy từ data/logs.jsonl'
   target_percent: 99.5
   error_budget_percent: 0.5
-  note: Học viên phải giải thích hoặc điều chỉnh ngưỡng bằng baseline của mình.
+  # Request-based SLI: ngân sách là 0.5% tổng request trong cửa sổ 28 ngày.
+  # Không đổi sang phút vì tỷ lệ request tốt không tương đương availability theo thời gian.
+  error_budget_unit: bad_requests
+  latency_threshold_ms: 2000
+  rationale: >-
+    Baseline đo được trên chính repo này (python scripts/load_test.py, 10 request, không bật
+    Langfuse): latency_p50 = 150 ms, latency_p95 = 151 ms, ttft_p95 = 50 ms, error_rate = 0%,
+    retrieval_success = 100%, quality_avg = 0.88, tổng cost 10 request = 0.0194 USD.
+    Ngưỡng 2000 ms đặt cao hơn baseline khoảng 13 lần nên không cảnh báo nhầm, nhưng thấp hơn
+    ngưỡng 3000 ms của starter. Lý do: khi bật incident practice `rag_slow`, latency server-side
+    đo được chỉ 2650-2651 ms, tức ngưỡng 3000 ms sẽ KHÔNG bắt được sự cố — SLO và alert
+    `high_p95_latency` sẽ im lặng. 2000 ms vừa nằm giữa baseline (151 ms) và giá trị khi hỏng
+    (2651 ms), vừa trùng trường latency_threshold_ms mà file challenge của Lab Coach dùng.
+    Nếu workload thật được dùng thay cho fake LLM, phải đo lại baseline rồi chỉnh lại ngưỡng.
+  error_budget_policy: >-
+    Hết error budget (0.5% request trong 28 ngày) thì chỉ nhận fix giảm rủi ro và rollback;
+    không phát hành prompt version mới cho tới khi budget được hoàn lại.
+  measurement_notes: >-
+    target_percent giữ nguyên 99.5 như starter vì chưa đủ 28 ngày dữ liệu để biện minh con số khác.
+    Học viên có dữ liệu runtime riêng thì điều chỉnh target_percent và giữ
+    error_budget_percent = 100 - target_percent cho khớp.
 guardrails:
+  # Ngưỡng phụ: vi phạm thì cần ghi nhận; alert_rules.yaml chỉ bật alert cho vi phạm nghiêm trọng.
   error_rate_pct_max: 2
   daily_cost_usd_max: 2.5
   quality_score_avg_min: 0.75
   retrieval_success_rate_pct_min: 90
+  alert_refs:
+    - high_p95_latency
+    - high_error_rate_and_retrieval_failure
+    - cost_budget_burn

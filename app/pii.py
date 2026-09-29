@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import re
+from typing import Any
 
 PII_PATTERNS: dict[str, str] = {
     "email": r"[\w\.-]+@[\w\.-]+\.\w+",
-    "phone_vn": r"(?<!\d)(?:\+84|0)(?:[ .-]?\d){9}(?!\d)",
     "cccd": r"\b\d{12}\b",
     "credit_card": r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b",
-    # TODO: Add more patterns (e.g., Passport, Vietnamese address keywords)
+    "phone_vn": r"(?<!\d)(?:\+84|0)(?:[ .-]?\d){9}(?!\d)",
+    "passport_vn": r"(?i:\b[A-Z]{2}\d{7}\b)",
+    "address_vn": r"(?i:\bsố\s+\d+[A-Za-z]?\s*(?:đường|phố|ngõ|ngách|hẻm)\b)[^,;\n]{0,40}",
 }
 
 
@@ -17,6 +19,16 @@ def scrub_text(text: str) -> str:
     for name, pattern in PII_PATTERNS.items():
         safe = re.sub(pattern, f"[REDACTED_{name.upper()}]", safe)
     return safe
+
+
+def scrub_value(value: Any) -> Any:
+    if isinstance(value, str):
+        return scrub_text(value)
+    if isinstance(value, dict):
+        return {key: scrub_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [scrub_value(item) for item in value]
+    return value
 
 
 def summarize_text(text: str, max_len: int = 80) -> str:

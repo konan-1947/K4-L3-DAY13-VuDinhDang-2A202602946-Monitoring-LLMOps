@@ -1,25 +1,50 @@
+# Ba alert symptom-based: điều kiện dùng tín hiệu người dùng cảm nhận được
+# (độ trễ, request lỗi, tiền) chứ không gắn với tên hàm nội bộ.
+# Nguồn: data/logs.jsonl qua các panel trong config/dashboard.yaml.
+# Runbook tương ứng: docs/alerts.md#alert-1, #alert-2, #alert-3.
 alerts:
-  - name: TODO_alert_1
-    severity: TODO
-    condition: TODO
-    duration: TODO
+  - name: high_p95_latency
+    severity: critical
     type: symptom-based
+    symptom: 'Người dùng chờ quá lâu cho câu trả lời (P95 latency vượt ngưỡng SLO 2s).'
+    condition: 'p95(response_sent.latency_ms) > 2000'
+    slo_threshold_ms: 2000
+    window: 5m
+    duration: 10m
+    for_zero_traffic: true
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-alerts"
+    owner: day13-oncall
+    slo: fast_successful_requests
+    dashboard_panel: latency
     runbook: docs/alerts.md#alert-1
-  - name: TODO_alert_2
-    severity: TODO
-    condition: TODO
-    duration: TODO
+
+  - name: high_error_rate_and_retrieval_failure
+    severity: critical
     type: symptom-based
+    symptom: 'Người dùng không nhận được câu trả lời: request 500 hoặc retrieval thất bại.'
+    condition: 'error_rate_pct > 2 or tool_success_rate_pct < 90'
+    window: 5m
+    duration: 10m
+    for_zero_traffic: false
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-alerts"
+    owner: day13-oncall
+    slo: fast_successful_requests
+    dashboard_panel: errors
     runbook: docs/alerts.md#alert-2
-  - name: TODO_alert_3
-    severity: TODO
-    condition: TODO
-    duration: TODO
+
+  - name: cost_budget_burn
+    severity: warning
     type: symptom-based
+    symptom: 'Người dùng nhận câu trả lời dài bất thường và hệ thống vượt ngân sách chi phí dù lưu lượng không tăng.'
+    condition: 'sum(response_sent.cost_usd) over 1d > 2.5 or cost_per_request > 2x cost_per_request_7d'
+    window: 1d
+    duration: 30m
+    for_zero_traffic: true
     channel: slack
-    owner: TODO
+    slack_channel: "#day13-alerts"
+    owner: day13-oncall
+    slo: daily_cost_guardrail
+    dashboard_panel: cost
     runbook: docs/alerts.md#alert-3

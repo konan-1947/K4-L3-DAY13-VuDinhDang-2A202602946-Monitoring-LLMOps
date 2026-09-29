@@ -1,0 +1,13 @@
+Official CP3 challenge trace evidence (Langfuse Observations API v2)
+Project: day13-k4-l3a-2A202602946
+Selected correlation_id from matching structured log: req-bb0d4434
+Trace ID: c935b1db8c3ab23d3129783d584db67d
+Root observation: lab-agent-run | 2.653 s | 2026-09-29T09:54:26.901Z–09:54:29.554Z
+  retrieval (RETRIEVER): 2.501 s | 2026-09-29T09:54:26.901Z–09:54:29.402Z
+  llm-generation (GENERATION): 0.151 s | 2026-09-29T09:54:29.403Z–09:54:29.554Z
+
+The retrieval observation dominates the selected trace and is consistent with the
+2.5-second delay injected by rag_slow. The root and child observations share
+correlation_id=req-bb0d4434 in Langfuse metadata (verified via Observations API
+v2 fields=metadata), matching the structured log above. No API key fields are
+included in this evidence file.

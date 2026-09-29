@@ -40,3 +40,26 @@ def tracing_enabled() -> bool:
     return LANGFUSE_SDK_AVAILABLE and bool(
         os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")
     )
+
+
+class NoopObservation:
+    """Đứng thay observation khi SDK thiếu hoặc client không hỗ trợ child observation."""
+
+    def update(self, **_: Any) -> None:
+        return None
+
+
+@contextmanager
+def child_observation(client: Any, **kwargs: Any):
+    """Mở child observation bằng API v4, hoặc yield no-op nếu không khả dụng.
+
+    Nhờ vậy agent luôn chạy được khi tracing tắt (không có key), khi chưa cài
+    Langfuse SDK, hoặc khi test dùng client giả tối giản.
+    """
+    starter = getattr(client, "start_as_current_observation", None)
+    if not callable(starter):
+        yield NoopObservation()
+        return
+
+    with starter(**kwargs) as observation:
+        yield observation

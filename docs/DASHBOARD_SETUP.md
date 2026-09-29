@@ -17,6 +17,10 @@ Trường `query` trong YAML là pseudocode mô tả phép tính, không phải 
 
 Giữ time range mặc định 60 phút, refresh 30 giây và hiển thị threshold/SLO line. Giá trị chính xác nằm trong `config/dashboard.yaml`; không tự đổi contract chỉ để ảnh dashboard đẹp hơn.
 
+Threshold của panel latency (2000 ms) phải khớp `latency_threshold_ms` trong `config/slo.yaml` và với điều kiện
+alert `high_p95_latency` trong `config/alert_rules.yaml`. Ba giá trị này phải nói chung một con số, nếu không
+SLO, panel và alert sẽ báo động lệch nhau.
+
 ## Cách dựng
 
 1. Hoàn thiện logging/PII và chạy API.

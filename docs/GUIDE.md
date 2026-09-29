@@ -20,6 +20,15 @@ Kiểm tra thứ tự processor: dữ liệu phải được scrub trước khi 
 
 Starter code chỉ gắn `@observe` cho `LabAgent.run`, nên waterfall chưa tách được thời gian retrieval và LLM. Với Langfuse Python SDK v4, thêm child observation loại `retriever`/`span` cho `retrieve` và loại `generation` cho `FakeLLM.generate`; generation phải có model, prompt, usage và cost. Không có child observation thì không khoanh vùng được bước chậm ở CP3.
 
+Repo này đã tách sẵn hai child observation, nên khi mở waterfall sẽ thấy:
+
+- `lab-agent-run` (root, `as_type=agent`): mang `correlation_id`, `prompt_name/label/version` trong metadata.
+- `retrieval` (child, `as_type=retriever`): thời gian truy hồi, `doc_count`, input/output đã scrub PII.
+- `llm-generation` (child, `as_type=generation`): model, prompt link, `usage_details` (input/output/total), `cost_details` (input/output) và `ttft_ms`.
+
+Khi truy hồi lỗi, span `retrieval` được đánh dấu `level=ERROR` kèm `status_message`; khi bật incident `rag_slow`,
+chính span này giãn ra (~2.5s) nên waterfall chỉ ra nguyên nhân mà không cần đoán.
+
 ## Khi metrics báo xấu nhưng chưa biết nguyên nhân
 
 1. Dùng metrics xác định khoảng thời gian và loại triệu chứng.
@@ -33,6 +42,10 @@ Starter code chỉ gắn `@observe` cho `LabAgent.run`, nên waterfall chưa tá
 Mỗi panel cần tên, đơn vị, khoảng thời gian và threshold. Ưu tiên 6 panel chính thay vì thêm nhiều biểu đồ không phục vụ quyết định.
 
 Chạy `python scripts/validate_dashboard.py` trước. Nếu validator qua nhưng dashboard vẫn sai, đối chiếu từng event/field với bảng trong [DASHBOARD_SETUP.md](DASHBOARD_SETUP.md), đặc biệt `response_sent.latency_ms` và `response_sent.quality_score`.
+
+Ngưỡng latency trong contract đã được hạ từ 3000 ms (starter) xuống 2000 ms vì baseline đo được chỉ 151 ms
+còn khi bật `rag_slow` là 2651 ms; giữ 3000 ms thì SLO và alert latency sẽ không bao giờ kích hoạt.
+Lý do và số đo nằm trong `config/slo.yaml`.
 
 ## Khi prompt luôn hiện `local-v1`
 
